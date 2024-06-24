@@ -25,37 +25,17 @@ services:
         networks:
             - sail
         depends_on:
-            - mariadb
+            - node
 
-    mariadb:
-        image: 'mariadb:10'
-        ports:
-            - '${FORWARD_DB_PORT:-3306}:3306'
-        environment:
-            MYSQL_ROOT_PASSWORD: '${DB_PASSWORD:-password}'
-            MYSQL_ROOT_HOST: '%'
-            MYSQL_DATABASE: '${DB_DATABASE:-laravel}'
-            MYSQL_USER: '${DB_USERNAME:-sail}'
-            MYSQL_PASSWORD: '${DB_PASSWORD:-password}'
-            MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+    node:
+        image: node:16
+        working_dir: /var/www/html
         volumes:
-            - 'sail-mariadb:/var/lib/mysql'
-            - './vendor/laravel/sail/database/mysql/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
+            - '.:/var/www/html'
+        command: sh -c "npm install && npm run dev"
         networks:
             - sail
-        healthcheck:
-            test:
-                - CMD
-                - mysqladmin
-                - ping
-                - '-p${DB_PASSWORD:-password}'
-            retries: 3
-            timeout: 5s
 
 networks:
     sail:
         driver: bridge
-
-volumes:
-    sail-mariadb:
-        driver: local
